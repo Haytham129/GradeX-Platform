@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>GradeX - Ultimate Academic Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            /* نظام الألوان الافتراضي (الداكن) */
+            --bg-main: #0b0f19;
+            --bg-gradient: radial-gradient(circle at top, #1e2640, #0b0f19);
+            --card-glass: rgba(22, 30, 49, 0.7);
+            --primary-cyan: #00f2fe;
+            --accent-blue: #4facfe;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --input-bg: rgba(11, 15, 25, 0.8);
+            --row-hover: rgba(255, 255, 255, 0.04);
+            --danger: #ff4b4b;
+            --success: #22c55e;
+        }
+
+        /* نظام الألوان الفاتح (Light Mode) بالطريقة المضمونة */
+        body.light-theme {
+            --bg-main: #f8fafc;
+            --bg-gradient: radial-gradient(circle at top, #e2e8f0, #f8fafc);
+            --card-glass: rgba(255, 255, 255, 0.9);
+            --primary-cyan: #0284c7;
+            --accent-blue: #0369a1;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --border-color: rgba(0, 0, 0, 0.1);
+            --input-bg: #ffffff;
+            --row-hover: rgba(0, 0, 0, 0.04);
+        }
+
+        body { 
+            font-family: 'Cairo', sans-serif; 
+            background: var(--bg-gradient);
+            color: var(--text-main); 
+            padding: 30px 10px; margin: 0; min-height: 100vh;
+            transition: background 0.4s ease, color 0.4s ease;
+        }
+
+        .dashboard { max-width: 850px; margin: auto; width: 100%; position: relative; }
+
+        /* زرار تغيير الإضاءة */
+        .theme-toggle {
+            position: absolute; top: 0; left: 10px; z-index: 1000;
+            background: var(--card-glass); border: 1px solid var(--border-color);
+            color: var(--text-main); padding: 12px 15px; border-radius: 50%;
+            cursor: pointer; font-size: 1.2rem; transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .theme-toggle:hover { transform: scale(1.1); color: var(--primary-cyan); }
+
+        h1.logo { 
+            text-align: center; font-weight: 900; font-size: 3.5rem; margin-bottom: 5px; margin-top: 10px;
+            background: linear-gradient(to right, var(--primary-cyan), var(--accent-blue));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 15px rgba(0, 242, 254, 0.2));
+        }
+        .tagline { text-align: center; color: var(--text-muted); margin-bottom: 30px; font-size: 1rem; }
+
+        .tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; }
+        .tab-btn {
+            background: transparent; border: 1px solid var(--border-color);
+            color: var(--text-main); padding: 12px 25px; border-radius: 12px; cursor: pointer;
+            font-family: 'Cairo', sans-serif; font-weight: 700; font-size: 1rem; transition: 0.3s;
+        }
+        .tab-btn.active {
+            background: linear-gradient(45deg, var(--primary-cyan), var(--accent-blue)); color: #fff;
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.4); border-color: transparent; text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .panel { display: none; background: var(--card-glass); backdrop-filter: blur(15px); border: 1px solid var(--border-color); padding: 35px; border-radius: 24px; box-shadow: 0 15px 35px rgba(0,0,0,0.15); transition: 0.3s; }
+        .panel.active { display: block; animation: fadeIn 0.5s ease-out; }
+
+        .mode-container { display: flex; align-items: center; justify-content: space-between; background: var(--row-hover); padding: 15px; border-radius: 14px; margin-bottom: 25px; border: 1px solid var(--border-color); transition: 0.3s; }
+        .mode-label { font-weight: 700; color: var(--text-main); }
+        .mode-switch { display: flex; gap: 5px; background: var(--input-bg); padding: 5px; border-radius: 10px; border: 1px solid var(--border-color); transition: 0.3s; }
+        .switch-btn { background: transparent; border: none; color: var(--text-muted); padding: 8px 15px; border-radius: 8px; cursor: pointer; font-family: 'Cairo', sans-serif; font-weight: 600; transition: 0.3s; }
+        .switch-btn.active { background: var(--row-hover); color: var(--primary-cyan); font-weight: 700; }
+
+        input, select { 
+            width: 100%; padding: 14px; background: var(--input-bg); border: 1px solid var(--border-color); 
+            border-radius: 12px; color: var(--text-main); font-family: 'Cairo', sans-serif; font-size: 15px; box-sizing: border-box; transition: all 0.3s;
+        }
+        input:focus, select:focus { outline: none; border-color: var(--primary-cyan); box-shadow: 0 0 10px rgba(0, 242, 254, 0.2); }
+        
+        .subject-row { 
+            display: grid; grid-template-columns: 2fr 1.5fr auto; gap: 15px; align-items: center;
+            background: var(--row-hover); padding: 15px; border-radius: 16px; margin-bottom: 12px; border: 1px solid transparent; transition: 0.3s;
+        }
+        .subject-row:hover { border-color: var(--primary-cyan); }
+
+        .btn-main { 
+            background: linear-gradient(45deg, var(--primary-cyan), var(--accent-blue)); color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            padding: 16px; border: none; border-radius: 14px; cursor: pointer; width: 100%; font-size: 1.15rem; font-weight: 900; margin-top: 20px; transition: 0.3s; box-shadow: 0 10px 20px rgba(0, 242, 254, 0.15);
+        }
+        .btn-main:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(0, 242, 254, 0.35); }
+        
+        .btn-add { background: transparent; border: 2px dashed var(--text-muted); color: var(--text-muted); padding: 12px; width: 100%; border-radius: 12px; cursor: pointer; font-size: 0.95rem; font-weight: 600; transition: 0.3s; font-family: 'Cairo'; }
+        .btn-add:hover { border-color: var(--primary-cyan); color: var(--primary-cyan); background: var(--row-hover); }
+        
+        .btn-del { background: rgba(255, 75, 75, 0.1); color: var(--danger); border: 1px solid transparent; padding: 12px; border-radius: 10px; cursor: pointer; transition: 0.3s; }
+        .btn-del:hover { background: var(--danger); color: white; }
+
+        .grid-target { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+
+        .table-container { position: relative; margin-top: 40px; background: var(--card-glass); padding: 25px; border-radius: 20px; border: 1px solid var(--border-color); transition: 0.3s; }
+        table { width: 100%; border-collapse: collapse; text-align: right; margin-top: 20px; }
+        th, td { padding: 14px; border-bottom: 1px solid var(--border-color); color: var(--text-main); transition: 0.3s; }
+        th { color: var(--primary-cyan); font-weight: 700; }
+        tr:hover { background: var(--row-hover); }
+        .high-gpa { color: var(--success); font-weight: bold; }
+
+        .footer { text-align: center; margin-top: 40px; padding-bottom: 20px; color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; }
+        .footer b { color: var(--primary-cyan); font-weight: 800; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard">
+        <!-- زرار الإضاءة -->
+        <button class="theme-toggle" onclick="toggleTheme()" title="تغيير الإضاءة"><i class="fas fa-sun" id="themeIcon"></i></button>
+
+        <h1 class="logo"><i class="fas fa-bolt"></i> GradeX</h1>
+        <p class="tagline">منصة الحسابات الأكاديمية الذكية المتكاملة</p>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('calcPanel', this)"><i class="fas fa-calculator"></i> حساب المعدل الفصلي</button>
+            <button class="tab-btn" onclick="switchTab('targetPanel', this)"><i class="fas fa-bullseye"></i> حاسبة الهدف التراكمي</button>
+        </div>
+
+        <!-- التاب الأول -->
+        <div id="calcPanel" class="panel active">
+            <div style="margin-bottom: 20px;">
+                <input type="text" id="userName" placeholder="👤 اكتب اسمك هنا">
+            </div>
+
+            <div class="mode-container">
+                <div class="mode-label"><i class="fas fa-sliders-h"></i> نظام إدخال بيانات المواد للترم:</div>
+                <div class="mode-switch">
+                    <button id="modeLetters" class="switch-btn active" onclick="setEntryMode('letters')">🔠 تقديرات حرفية</button>
+                    <button id="modeScores" class="switch-btn" onclick="setEntryMode('scores')">🔢 درجات مئوية</button>
+                </div>
+            </div>
+
+            <div id="subjectList"></div>
+
+            <button class="btn-add" onclick="addNewSubjectRow()"><i class="fas fa-plus-circle"></i> إضافة مادة جديدة</button>
+            <button class="btn-main" onclick="submitSemesterGPA()"><i class="fas fa-magic"></i> احسب واحفظ النتيجة في السجل</button>
+        </div>
+
+        <!-- التاب الثاني -->
+        <div id="targetPanel" class="panel">
+            <h3 style="color: var(--primary-cyan); margin-top: 0;"><i class="fas fa-crosshairs"></i> اعرف محتاج تجيب كام عشان توصل لهدفك</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px;">الحاسبة دي بتدمج ساعاتك القديمة ومعدلك التراكمي الحالي مع ساعات الفصل الدراسي القادم عشان تديك الخطة بدقة.</p>
+            
+            <div class="grid-target">
+                <div>
+                    <label style="display:block; margin-bottom:5px; font-size:0.9rem; color:var(--text-muted);">المعدل التراكمي الحالي (CGPA):</label>
+                    <input type="number" id="currCGPA" placeholder="مثال: 2.7" step="0.01">
+                </div>
+                <div>
+                    <label style="display:block; margin-bottom:5px; font-size:0.9rem; color:var(--text-muted);">إجمالي الساعات المنجزة:</label>
+                    <input type="number" id="currHours" placeholder="مثال: 30 ساعة">
+                </div>
+            </div>
+            <div class="grid-target">
+                <div>
+                    <label style="display:block; margin-bottom:5px; font-size:0.9rem; color:var(--text-muted);">المعدل التراكمي المستهدف:</label>
+                    <input type="number" id="targetCGPA" placeholder="مثال: 3.2" step="0.01">
+                </div>
+                <div>
+                    <label style="display:block; margin-bottom:5px; font-size:0.9rem; color:var(--text-muted);">ساعات الفصل الدراسي القادم:</label>
+                    <input type="number" id="nextHours" placeholder="مثال: 15 ساعة">
+                </div>
+            </div>
+            <button class="btn-main" onclick="runTargetLogic()"><i class="fas fa-chart-line"></i> احسب المعدل المطلوب للترم</button>
+        </div>
+
+        <!-- سجل الطلاب -->
+        <div class="table-container">
+            <button class="btn-del" onclick="clearHistory()" style="position: absolute; top: 20px; left: 25px; font-family: 'Cairo';"><i class="fas fa-trash-alt"></i> مسح السجل بالكامل</button>
+            <h3 style="margin-top: 0; color: var(--accent-blue);"><i class="fas fa-history"></i> سجل حسابات GradeX</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>الاسم</th>
+                        <th>المعدل الفصلي (GPA)</th>
+                        <th>التقدير العام</th>
+                    </tr>
+                </thead>
+                <tbody id="dbTableBody"></tbody>
+            </table>
+        </div>
+
+        <!-- حقوق الملكية -->
+        <div class="footer">
+            <p>GradeX Academic Platform © 2026</p>
+            <p>Developed & Designed by <b>Eng. Haytham</b> 🚀</p>
+        </div>
+    </div>
+
+    <script>
+        let currentMode = 'letters';
+
+        // دالة تغيير الإضاءة (تم تعديلها لتكون 100% مضمونة)
+        function toggleTheme() {
+            const body = document.body;
+            const icon = document.getElementById('themeIcon');
+            
+            // إضافة أو إزالة كلاس light-theme من البودي مباشرة
+            body.classList.toggle('light-theme');
+            
+            if (body.classList.contains('light-theme')) {
+                icon.className = 'fas fa-moon';
+                localStorage.setItem('gradeXTheme', 'light'); // حفظ إنك اخترت الفاتح
+            } else {
+                icon.className = 'fas fa-sun';
+                localStorage.setItem('gradeXTheme', 'dark'); // حفظ إنك اخترت الغامق
+            }
+        }
+
+        // أول ما الصفحة تفتح
+        window.onload = () => {
+            // استرجاع الإضاءة
+            if (localStorage.getItem('gradeXTheme') === 'light') {
+                document.body.classList.add('light-theme');
+                document.getElementById('themeIcon').className = 'fas fa-moon';
+            }
+            
+            for(let i=0; i<3; i++) addNewSubjectRow();
+            loadSavedStudents();
+        };
+
+        function switchTab(panelId, btn) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(panelId).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        function setEntryMode(mode) {
+            currentMode = mode;
+            document.getElementById('modeLetters').classList.toggle('active', mode === 'letters');
+            document.getElementById('modeScores').classList.toggle('active', mode === 'scores');
+            
+            const rows = document.querySelectorAll('.subject-row');
+            rows.forEach(row => {
+                const inputCell = row.querySelector('.input-cell');
+                const savedHours = row.querySelector('.hour-val').value;
+                if(mode === 'scores') {
+                    inputCell.innerHTML = `<input type="number" class="score-val" placeholder="💯 الدرجة (0-100)" min="0" max="100">`;
+                } else {
+                    inputCell.innerHTML = `
+                        <select class="letter-val">
+                            <option value="4.0">A+ (امتياز مرتفع)</option>
+                            <option value="4.0">A (امتياز)</option>
+                            <option value="3.7">A-</option>
+                            <option value="3.3">B+</option>
+                            <option value="3.0">B (جيد جداً)</option>
+                            <option value="2.7">B-</option>
+                            <option value="2.3">C+</option>
+                            <option value="2.0">C (جيد)</option>
+                            <option value="1.7">C-</option>
+                            <option value="1.3">D+</option>
+                            <option value="1.0">D (مقبول)</option>
+                            <option value="0.0">F (راسب)</option>
+                        </select>`;
+                }
+                row.querySelector('.hour-val').value = savedHours;
+            });
+        }
+
+        function addNewSubjectRow() {
+            const list = document.getElementById('subjectList');
+            const row = document.createElement('div');
+            row.className = 'subject-row';
+            
+            let inputFieldHTML = currentMode === 'scores' 
+                ? `<input type="number" class="score-val" placeholder="💯 الدرجة (0-100)" min="0" max="100">`
+                : `<select class="letter-val">
+                        <option value="4.0">A+ (امتياز مرتفع)</option><option value="4.0">A (امتياز)</option><option value="3.7">A-</option>
+                        <option value="3.3">B+</option><option value="3.0">B (جيد جداً)</option><option value="2.7">B-</option>
+                        <option value="2.3">C+</option><option value="2.0">C (جيد)</option><option value="1.7">C-</option>
+                        <option value="1.3">D+</option><option value="1.0">D (مقبول)</option><option value="0.0">F (راسب)</option>
+                   </select>`;
+
+            row.innerHTML = `
+                <div class="input-cell">${inputFieldHTML}</div>
+                <div><input type="number" class="hour-val" placeholder="⏱️ الساعات" min="1"></div>
+                <div><button class="btn-del" onclick="this.parentElement.parentElement.remove()"><i class="fas fa-trash"></i></button></div>
+            `;
+            list.appendChild(row);
+        }
+
+        function getPointsFromPercent(s) {
+            if (s >= 90) return 4.0; if (s >= 85) return 3.7; if (s >= 80) return 3.3; if (s >= 75) return 3.0;
+            if (s >= 70) return 2.7; if (s >= 65) return 2.3; if (s >= 60) return 2.0; if (s >= 50) return 1.0; return 0.0;
+        }
+
+        function getGeneralEstimate(gpa) {
+            if (gpa >= 3.6) return "امتياز مرتفع 👑"; if (gpa >= 3.4) return "امتياز 🚀"; if (gpa >= 3.0) return "جيد جداً 🔥";
+            if (gpa >= 2.4) return "جيد 👍"; if (gpa >= 2.0) return "مقبول 🫡"; return "ضعيف 💥";
+        }
+
+        function submitSemesterGPA() {
+            let name = document.getElementById('userName').value || "طالب GradeX";
+            let pts = []; let hrs = [];
+            let rows = document.querySelectorAll('.subject-row');
+            
+            rows.forEach(r => {
+                let hours = parseInt(r.querySelector('.hour-val').value);
+                let points = 0.0;
+                
+                if(!isNaN(hours)) {
+                    if (currentMode === 'scores') {
+                        let score = parseFloat(r.querySelector('.score-val').value);
+                        if(!isNaN(score)) points = getPointsFromPercent(score);
+                    } else {
+                        points = parseFloat(r.querySelector('.letter-val').value);
+                    }
+                    pts.push(points); hrs.push(hours);
+                }
+            });
+
+            if(pts.length === 0) {
+                Swal.fire({ icon: 'warning', title: 'عفواً', text: 'أدخل بيانات مادة واحدة كاملة على الأقل!', background: 'var(--bg-main)', color: 'var(--text-main)' });
+                return;
+            }
+
+            fetch('/api/students', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: name, points: pts, hours: hrs })
+            })
+            .then(res => res.json())
+            .then(data => {
+                let finalGpa = data.gpa.toFixed(2);
+                let est = getGeneralEstimate(finalGpa);
+                Swal.fire({
+                    title: `عاش يا ${data.name}!`,
+                    html: `المعدل المحسوب هو:<br><span style="font-size:55px; font-weight:900; color:var(--primary-cyan)">${finalGpa}</span><br>التقدير العام: <b>${est}</b>`,
+                    icon: 'success', background: 'var(--bg-main)', color: 'var(--text-main)', confirmButtonColor: '#00f2fe'
+                });
+                loadSavedStudents(); 
+            });
+        }
+
+        function runTargetLogic() {
+            let currG = parseFloat(document.getElementById('currCGPA').value);
+            let currH = parseFloat(document.getElementById('currHours').value);
+            let targetG = parseFloat(document.getElementById('targetCGPA').value);
+            let nextH = parseFloat(document.getElementById('nextHours').value);
+
+            if(isNaN(currG) || isNaN(currH) || isNaN(targetG) || isNaN(nextH)) {
+                Swal.fire({ icon: 'warning', title: 'تنبيه', text: 'يرجى إكمال جميع الحقول لحساب الهدف بدقة.', background: 'var(--bg-main)', color: 'var(--text-main)' });
+                return;
+            }
+
+            let requiredPoints = (targetG * (currH + nextH)) - (currG * currH);
+            let neededTermGPA = requiredPoints / nextH;
+
+            if(neededTermGPA > 4.0) {
+                Swal.fire({ icon: 'error', title: 'مستحيل رياضياً! ', html: `للوصول إلى ${targetG} تحتاج إلى معدل فصلي <b>${neededTermGPA.toFixed(2)}</b>، وهو يتجاوز الحد الأقصى (4.0). قم بزيادة الساعات لتوزيع الجهد.`, background: 'var(--bg-main)', color: 'var(--text-main)' });
+            } else if(neededTermGPA < 1.0) {
+                Swal.fire({ icon: 'success', title: 'في الأمان المطلق! 🎉', html: `هدفك مضمون! تحتاج فقط إلى اجتياز المواد بمعدل <b>(${neededTermGPA.toFixed(2)})</b> للوصول للهدف.`, background: 'var(--bg-main)', color: 'var(--text-main)' });
+            } else {
+                Swal.fire({ icon: 'info', title: 'الخطة المطلوبة للهدف 🎯', html: `للوصول إلى تراكمي <b>${targetG}</b>، يجب ألا يقل معدلك الفصلي القادم عن: <h2 style="color:var(--primary-cyan); font-size:40px;">${neededTermGPA.toFixed(2)}</h2>`, background: 'var(--bg-main)', color: 'var(--text-main)', confirmButtonColor: '#00f2fe' });
+            }
+        }
+
+        function loadSavedStudents() {
+            fetch('/api/students')
+            .then(res => res.json())
+            .then(data => {
+                let tbody = document.getElementById('dbTableBody');
+                tbody.innerHTML = '';
+                data.forEach(s => {
+                    let gpaVal = s.gpa ? s.gpa.toFixed(2) : "0.00";
+                    let row = `<tr>
+                        <td>${s.name}</td>
+                        <td class="high-gpa">${gpaVal}</td>
+                        <td>${getGeneralEstimate(s.gpa)}</td>
+                    </tr>`;
+                    tbody.innerHTML += row;
+                });
+            });
+        }
+
+        function clearHistory() {
+            Swal.fire({
+                title: 'هل أنت متأكد؟',
+                text: "سيتم مسح سجل الطلاب بالكامل ولا يمكن التراجع عن هذا الإجراء!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ff4b4b',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'نعم، امسح السجل',
+                cancelButtonText: 'إلغاء',
+                background: 'var(--bg-main)',
+                color: 'var(--text-main)'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch('/api/students', { method: 'DELETE' })
+                    .then(res => {
+                        if(res.ok) {
+                            loadSavedStudents();
+                            Swal.fire({ title: 'تم المسح!', text: 'تم تنظيف السجل بنجاح.', icon: 'success', background: 'var(--bg-main)', color: 'var(--text-main)' });
+                        } else {
+                            Swal.fire({ title: 'خطأ', text: 'حصلت مشكلة في الاتصال بالداتا بيز.', icon: 'error', background: 'var(--bg-main)', color: 'var(--text-main)' });
+                        }
+                    })
+                    .catch(err => console.error(err));
+                }
+            });
+        }
+    </script>
+</body>
+</html>
