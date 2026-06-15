@@ -112,13 +112,6 @@
 
         .grid-target { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
 
-        .table-container { position: relative; margin-top: 40px; background: var(--card-glass); padding: 25px; border-radius: 20px; border: 1px solid var(--border-color); transition: 0.3s; }
-        table { width: 100%; border-collapse: collapse; text-align: right; margin-top: 20px; }
-        th, td { padding: 14px; border-bottom: 1px solid var(--border-color); color: var(--text-main); transition: 0.3s; }
-        th { color: var(--primary-cyan); font-weight: 700; }
-        tr:hover { background: var(--row-hover); }
-        .high-gpa { color: var(--success); font-weight: bold; }
-
         .footer { text-align: center; margin-top: 40px; padding-bottom: 20px; color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; }
         .footer b { color: var(--primary-cyan); font-weight: 800; }
 
@@ -128,7 +121,6 @@
 <body>
 
     <div class="dashboard">
-        <!-- زرار الإضاءة -->
         <button class="theme-toggle" onclick="toggleTheme()" title="تغيير الإضاءة"><i class="fas fa-sun" id="themeIcon"></i></button>
 
         <h1 class="logo"><i class="fas fa-bolt"></i> GradeX</h1>
@@ -139,7 +131,6 @@
             <button class="tab-btn" onclick="switchTab('targetPanel', this)"><i class="fas fa-bullseye"></i> حاسبة الهدف التراكمي</button>
         </div>
 
-        <!-- التاب الأول -->
         <div id="calcPanel" class="panel active">
             <div style="margin-bottom: 20px;">
                 <input type="text" id="userName" placeholder="👤 اكتب اسمك هنا">
@@ -156,10 +147,9 @@
             <div id="subjectList"></div>
 
             <button class="btn-add" onclick="addNewSubjectRow()"><i class="fas fa-plus-circle"></i> إضافة مادة جديدة</button>
-            <button class="btn-main" onclick="submitSemesterGPA()"><i class="fas fa-magic"></i> احسب واحفظ النتيجة في السجل</button>
+            <button class="btn-main" onclick="submitSemesterGPA()"><i class="fas fa-magic"></i> احسب النتيجة</button>
         </div>
 
-        <!-- التاب الثاني -->
         <div id="targetPanel" class="panel">
             <h3 style="color: var(--primary-cyan); margin-top: 0;"><i class="fas fa-crosshairs"></i> اعرف محتاج تجيب كام عشان توصل لهدفك</h3>
             <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px;">الحاسبة دي بتدمج ساعاتك القديمة ومعدلك التراكمي الحالي مع ساعات الفصل الدراسي القادم عشان تديك الخطة بدقة.</p>
@@ -187,23 +177,6 @@
             <button class="btn-main" onclick="runTargetLogic()"><i class="fas fa-chart-line"></i> احسب المعدل المطلوب للترم</button>
         </div>
 
-        <!-- سجل الطلاب -->
-        <div class="table-container">
-            <button class="btn-del" onclick="clearHistory()" style="position: absolute; top: 20px; left: 25px; font-family: 'Cairo';"><i class="fas fa-trash-alt"></i> مسح السجل بالكامل</button>
-            <h3 style="margin-top: 0; color: var(--accent-blue);"><i class="fas fa-history"></i> سجل حسابات GradeX</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>الاسم</th>
-                        <th>المعدل الفصلي (GPA)</th>
-                        <th>التقدير العام</th>
-                    </tr>
-                </thead>
-                <tbody id="dbTableBody"></tbody>
-            </table>
-        </div>
-
-        <!-- حقوق الملكية -->
         <div class="footer">
             <p>GradeX Academic Platform © 2026</p>
             <p>Developed & Designed by <b>Eng. Haytham</b> 🚀</p>
@@ -213,33 +186,30 @@
     <script>
         let currentMode = 'letters';
 
-        // دالة تغيير الإضاءة (تم تعديلها لتكون 100% مضمونة)
+        // دالة تغيير الإضاءة 
         function toggleTheme() {
             const body = document.body;
             const icon = document.getElementById('themeIcon');
             
-            // إضافة أو إزالة كلاس light-theme من البودي مباشرة
             body.classList.toggle('light-theme');
             
             if (body.classList.contains('light-theme')) {
                 icon.className = 'fas fa-moon';
-                localStorage.setItem('gradeXTheme', 'light'); // حفظ إنك اخترت الفاتح
+                localStorage.setItem('gradeXTheme', 'light');
             } else {
                 icon.className = 'fas fa-sun';
-                localStorage.setItem('gradeXTheme', 'dark'); // حفظ إنك اخترت الغامق
+                localStorage.setItem('gradeXTheme', 'dark');
             }
         }
 
         // أول ما الصفحة تفتح
         window.onload = () => {
-            // استرجاع الإضاءة
             if (localStorage.getItem('gradeXTheme') === 'light') {
                 document.body.classList.add('light-theme');
                 document.getElementById('themeIcon').className = 'fas fa-moon';
             }
             
             for(let i=0; i<3; i++) addNewSubjectRow();
-            loadSavedStudents();
         };
 
         function switchTab(panelId, btn) {
@@ -352,7 +322,6 @@
                     html: `المعدل المحسوب هو:<br><span style="font-size:55px; font-weight:900; color:var(--primary-cyan)">${finalGpa}</span><br>التقدير العام: <b>${est}</b>`,
                     icon: 'success', background: 'var(--bg-main)', color: 'var(--text-main)', confirmButtonColor: '#00f2fe'
                 });
-                loadSavedStudents(); 
             });
         }
 
@@ -377,52 +346,6 @@
             } else {
                 Swal.fire({ icon: 'info', title: 'الخطة المطلوبة للهدف 🎯', html: `للوصول إلى تراكمي <b>${targetG}</b>، يجب ألا يقل معدلك الفصلي القادم عن: <h2 style="color:var(--primary-cyan); font-size:40px;">${neededTermGPA.toFixed(2)}</h2>`, background: 'var(--bg-main)', color: 'var(--text-main)', confirmButtonColor: '#00f2fe' });
             }
-        }
-
-        function loadSavedStudents() {
-            fetch('/api/students')
-            .then(res => res.json())
-            .then(data => {
-                let tbody = document.getElementById('dbTableBody');
-                tbody.innerHTML = '';
-                data.forEach(s => {
-                    let gpaVal = s.gpa ? s.gpa.toFixed(2) : "0.00";
-                    let row = `<tr>
-                        <td>${s.name}</td>
-                        <td class="high-gpa">${gpaVal}</td>
-                        <td>${getGeneralEstimate(s.gpa)}</td>
-                    </tr>`;
-                    tbody.innerHTML += row;
-                });
-            });
-        }
-
-        function clearHistory() {
-            Swal.fire({
-                title: 'هل أنت متأكد؟',
-                text: "سيتم مسح سجل الطلاب بالكامل ولا يمكن التراجع عن هذا الإجراء!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ff4b4b',
-                cancelButtonColor: '#64748b',
-                confirmButtonText: 'نعم، امسح السجل',
-                cancelButtonText: 'إلغاء',
-                background: 'var(--bg-main)',
-                color: 'var(--text-main)'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    fetch('/api/students', { method: 'DELETE' })
-                    .then(res => {
-                        if(res.ok) {
-                            loadSavedStudents();
-                            Swal.fire({ title: 'تم المسح!', text: 'تم تنظيف السجل بنجاح.', icon: 'success', background: 'var(--bg-main)', color: 'var(--text-main)' });
-                        } else {
-                            Swal.fire({ title: 'خطأ', text: 'حصلت مشكلة في الاتصال بالداتا بيز.', icon: 'error', background: 'var(--bg-main)', color: 'var(--text-main)' });
-                        }
-                    })
-                    .catch(err => console.error(err));
-                }
-            });
         }
     </script>
 </body>
